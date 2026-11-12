@@ -4,18 +4,18 @@
 
 传给它一个字符串数组，它按屏幕宽度自动折行，把每个字符串排成圆角标签，并告诉你整块区域有多高——你只管 `addSubview`。
 
-```
-输入：@[@"优秀", @"十分优秀", @"很优秀", @"最优秀", @"真TM优秀", @"过分优秀了喔",
-        @"优秀的已经飘起来了", @"优秀的想要上天", @"优秀的已经上天", @"优秀"]
-
-输出（宽度不够就自动折行，每个标签是一个圆角胶囊）：
-
-  [ 优秀 ]  [ 十分优秀 ]  [ 很优秀 ]  [ 最优秀 ]
-  [ 真TM优秀 ]  [ 过分优秀了喔 ]  [ 优秀的已经飘起来了 ]
-  [ 优秀的想要上天 ]  [ 优秀的已经上天 ]
+```objc
+NSArray *tags = @[@"优秀", @"十分优秀", @"很优秀", @"最优秀", @"真TM优秀", @"过分优秀了喔",
+                  @"优秀的已经飘起来了", @"优秀的想要上天", @"优秀的已经上天", @"优秀"];
 ```
 
-标签默认样式：黑底白字、圆角 12、1pt 描边、15 号字、固定高 25，水平间距 10、行间距 15。
+<img src="docs/images/tagview-left.png" width="375" alt="TagView 渲染效果：黑色圆角胶囊标签，按屏幕宽度自动折行">
+
+> 上图不是截图，是按源码里的样式参数 1:1 渲染的（背景 `#000000`、字号 15pt、圆角 12pt、高 25pt、水平间距 10pt、行距 15pt），换到真机上视觉一致。
+
+标签默认样式：**纯黑背景 + 白色文字**，圆角 12pt、字号 15pt、固定高 25pt，水平间距 10pt、行距 15pt。
+
+> 代码里虽然写了 `layer.borderWidth = 1`，但**没有设置 `borderColor`**（CALayer 默认是黑色，与背景同色），所以看到的其实是没有描边的纯黑胶囊。
 
 ---
 
@@ -28,23 +28,18 @@
 | **`TagView`** | 标签直接挂在自己身上 | **左对齐** | 实现最简单，没有全局状态，**推荐优先用** |
 | **`TagsView`** | 每行先套一个"行容器"，再把标签放进容器 | **整行居中** | 视觉上更整齐，但有一处全局变量的坑（见「已知限制」） |
 
-看效果差异，同样一组标签：
+看效果差异，同样是上面那组标签：
 
-**`TagView` —— 每行左对齐，第一个标签始终贴左边**
-
-```
-[优秀] [很棒] [一般]
-[特别好]
-[一般]
-```
-
-**`TagsView` —— 每行整体居中，左右留白相等**
-
-```
-      [优秀] [很棒] [一般]
-            [特别好]
-              [一般]
-```
+<table>
+<tr>
+<td align="center"><img src="docs/images/tagview-left.png" width="330" alt="TagView 左对齐效果"></td>
+<td align="center"><img src="docs/images/tagsview-center.png" width="330" alt="TagsView 居中效果"></td>
+</tr>
+<tr>
+<td align="center"><b><code>TagView</code></b><br>每行左对齐，第一个标签始终贴左边</td>
+<td align="center"><b><code>TagsView</code></b><br>每行整体居中，左右留白相等</td>
+</tr>
+</table>
 
 **不确定选哪个，就用 `TagView`。** 绝大多数场景（评价标签、筛选条件、兴趣标签）左对齐就够用，而且不会有下面说的崩溃风险。
 
@@ -163,7 +158,7 @@ CGFloat height = [tagsView tagsViewHeight];   // 注意是 tagsViewHeight
 | 文字色（默认白） | `label.textColor = [UIColor whiteColor];` | 同上 |
 | 字号（默认 15） | `label.font = [UIFont systemFontOfSize:15];` | 同上 |
 | 圆角（默认 12） | `label.layer.cornerRadius = 12;` | 同上 |
-| 描边 | `label.layer.borderWidth = 1;` | 同上，改成 `0` 就没边了 |
+| 描边 | `label.layer.borderWidth = 1;` 加一行 `label.layer.borderColor = [UIColor whiteColor].CGColor;` | 同上。**只改 `borderWidth` 看不到效果，必须同时设 `borderColor`**——默认是黑色，跟背景一样 |
 | 左右内边距 | `label.mj_w += 2 * tagMargin;` | `setupUI` 里，改 `2 *` 这个系数 |
 
 标签宽度的算法很简单：先用 `sizeToFit` 量出文字宽度，再**加上左右各一个 `tagMargin`** 当内边距。
